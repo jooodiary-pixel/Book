@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>水色の夏</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500&family=Gowun+Batang&display=swap">
+<style>
+/* layout: a physical Japanese bunko on a desk; spine on the right, obi band on the cover, pages turn right-to-left */
+:root{
+  --desk:#e6e0d8; --desk-ink:#6a625b; --shadow:rgba(50,35,25,.38);
+  --paper:#f6f0e3; --paper-edge:#e9e0cd; --ink:#26211d; --ink-soft:#867b70;
+  --cover:#eef4f3; --cover-ink:#1f3442; --cover-soft:#6a8593;
+  --obi:#b9c7b4; --obi-ink:#24342a; --obi-soft:#4d6253;
+  --serif:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho','Noto Serif CJK JP',serif;
+  --ui:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans CJK JP',sans-serif;
+  --pen:'Gowun Batang','AppleMyungjo','Noto Serif CJK KR',serif;
+  --hl:rgba(150,228,140,.55); --note:#8e8780;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--desk:#1b1815;--desk-ink:#a3998f;--shadow:rgba(0,0,0,.6);color-scheme:dark}}
+:root[data-theme="dark"]{--desk:#1b1815;--desk-ink:#a3998f;--shadow:rgba(0,0,0,.6);color-scheme:dark}
+html,body{height:100%;margin:0}
+body{background:var(--desk);color:var(--desk-ink);font-family:var(--ui);overflow-x:hidden;overflow-y:auto;box-sizing:border-box;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+.app{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding-block:6px;box-sizing:border-box}
+.bar{width:min(100%,440px);display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.08em;min-height:20px}
+.bar button{font:inherit;color:inherit;background:none;border:0;padding:4px 2px;cursor:pointer}
+.bar button:focus-visible,.book:focus-visible{outline:2px solid var(--cover-soft);outline-offset:4px}
+
+.book{position:relative;aspect-ratio:105/152;height:min(max(calc(100vh - 74px),280px),max(calc(100dvh - 74px),280px),calc((100vw - 40px)*1.447),660px);max-width:calc(100% - 8px);
+  container-type:size;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;outline:none;perspective:1600px}
+/* page block peeking out on the left (fore-edge) and bottom: the book's thickness */
+.block{position:absolute;inset:0;transform:translate(-1.6cqw,1.1cqw);border-radius:3px 1px 1px 3px;
+  background:repeating-linear-gradient(90deg,var(--paper-edge) 0 1px,var(--paper) 1px 2.5px);
+  box-shadow:0 2.4cqw 4cqw -1cqw var(--shadow),-1cqw 1.6cqw 3cqw -1.5cqw var(--shadow)}
+.sheet{position:absolute;inset:0;overflow:hidden;transform-origin:right center;transition:transform .7s cubic-bezier(.3,.6,.2,1),opacity .7s ease}
+.sheet.after{opacity:0;transform:translateX(-2%);pointer-events:none}
+.sheet.before{opacity:0;transform:rotateY(70deg);pointer-events:none}
+
+/* cover */
+.cover{background:var(--cover);border-radius:2px 1px 1px 2px;color:var(--cover-ink)}
+.cover canvas{position:absolute;inset:0;width:100%;height:100%}
+.spine{position:absolute;top:0;bottom:0;right:0;width:5cqw;
+  background:linear-gradient(90deg,rgba(0,0,0,0) 0,rgba(0,0,0,.10) 40%,rgba(255,255,255,.22) 72%,rgba(0,0,0,.14) 100%)}
+.hinge{position:absolute;top:0;bottom:0;right:6.2cqw;width:1px;background:rgba(30,60,80,.12);box-shadow:1px 0 0 rgba(255,255,255,.35)}
+.c-titleblock{position:absolute;top:8cqh;right:15cqw;display:flex;flex-direction:column;align-items:center;gap:2cqh}
+.c-title{writing-mode:vertical-rl;font-family:var(--serif);font-weight:500;font-size:10.4cqw;letter-spacing:.42em;line-height:1;
+  text-shadow:0 1px 0 rgba(255,255,255,.6),0 -.5px 0 rgba(20,50,70,.15)}
+.c-label{position:absolute;top:8.6cqh;right:29cqw;writing-mode:vertical-rl;font-family:var(--serif);font-size:3cqw;letter-spacing:.4em;color:var(--cover-soft)}
+.c-author{position:absolute;top:9cqh;left:13cqw;writing-mode:vertical-rl;font-family:var(--serif);font-size:4.4cqw;letter-spacing:.5em}
+.obi-kr{position:relative;font-family:var(--pen);font-size:2.9cqw;line-height:1.7;letter-spacing:.02em;color:var(--cover-soft);margin-top:-.4cqh}
+.c-en{writing-mode:vertical-rl;font-family:var(--serif);font-size:2.1cqw;letter-spacing:.22em;white-space:nowrap;color:var(--cover-soft)}
+.c-author-kr{position:absolute;top:9.4cqh;left:7.6cqw;writing-mode:vertical-rl;font-family:var(--pen);font-size:2.5cqw;letter-spacing:.2em;color:var(--cover-soft)}
+.obi{position:absolute;left:0;right:0;bottom:0;min-height:19cqh;padding-block:3.2cqh!important;box-sizing:border-box;cursor:pointer;color:var(--cover-ink);
+  background:linear-gradient(180deg,rgba(255,255,255,.52) 0%,rgba(255,252,248,.38) 30%,rgba(255,250,244,.46) 100%);
+  -webkit-backdrop-filter:blur(1.4px) saturate(.85);backdrop-filter:blur(1.4px) saturate(.85);
+  box-shadow:0 -.4cqw 1.4cqw -.6cqw rgba(30,60,80,.10);display:flex;flex-direction:column;justify-content:center;gap:1.4cqh;padding:0 9cqw 0 8cqw}
+.obi::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(255,255,255,0) 20%,rgba(255,255,255,.35) 32%,rgba(255,255,255,0) 44%,rgba(255,255,255,0) 70%,rgba(255,255,255,.2) 78%,rgba(255,255,255,0) 86%);pointer-events:none}
+.obi canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.obi-catch{position:relative;font-family:var(--serif);font-weight:400;font-size:3.3cqw;line-height:1.8;letter-spacing:.06em;color:var(--cover-ink);white-space:nowrap}
+.obi-sub{position:relative;font-family:var(--serif);font-size:2.4cqw;letter-spacing:.3em;color:var(--cover-soft)}
+
+/* pages */
+.page{background:var(--paper);color:var(--ink);border-radius:1px 2px 2px 1px}
+.page .tex{position:absolute;inset:0;background-image:var(--paper-tex,none);background-size:280px 280px;opacity:.9}
+.page .gutter{position:absolute;top:0;bottom:0;right:0;width:14cqw;background:linear-gradient(270deg,rgba(60,40,25,.20),rgba(60,40,25,.06) 40%,rgba(60,40,25,0))}
+.page .edge{position:absolute;top:0;bottom:0;left:0;width:3cqw;background:linear-gradient(90deg,rgba(60,40,25,.08),rgba(60,40,25,0))}
+.page .text{position:absolute;top:9cqh;bottom:7.5cqh;right:12cqw;left:7cqw;writing-mode:vertical-rl;
+  font-family:var(--serif);font-size:4.5cqw;line-height:1.82;letter-spacing:.03em;font-feature-settings:"vert","vkna";color:var(--ink)}
+.page .text p{margin:0;text-indent:1em}
+.page .text p.d{text-indent:0}
+.page .text p.gap{margin-left:1.82em}
+.hl{background:linear-gradient(to left,transparent 6%,var(--hl) 6%,var(--hl) 90%,transparent 90%);-webkit-box-decoration-break:clone;box-decoration-break:clone;border-radius:2px}
+.page .text p.note{font-family:var(--pen);font-size:.72em;line-height:1.5;letter-spacing:.02em;color:var(--note);text-indent:0;margin-left:.45em;margin-top:.6em}
+.page .text .pair{margin:0 0 0 .3em;padding:0}
+.page .text .pair.newpara{margin-right:.5em}
+.page .text .pair p{margin:0}
+.page .text p.jp{text-indent:0}
+.page .text p.jp.para{text-indent:1em}
+.page .text .pair p.note{margin:0;margin-top:.15em;line-height:1.35}
+.running{position:absolute;top:4.6cqh;left:9cqw;font-family:var(--serif);font-size:2.6cqw;letter-spacing:.3em;color:var(--ink-soft)}
+.folio{position:absolute;bottom:4.2cqh;left:9cqw;font-family:var(--serif);font-size:2.8cqw;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.title-page .text{display:flex;flex-direction:column;justify-content:center}
+.tp-chapter{font-size:3.2cqw;letter-spacing:.45em;color:var(--ink-soft);margin-left:3.4em!important}
+.tp-name{font-size:7.4cqw;letter-spacing:.32em;font-weight:500}
+
+.hint{font-size:12px;letter-spacing:.06em;min-height:18px;text-align:center}
+@media (prefers-reduced-motion: reduce){.sheet{transition:opacity .2s ease}.sheet.before,.sheet.after{transform:none}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="bar">
+    <button id="toCover" type="button">表紙へ</button>
+    <span id="pos" style="font-variant-numeric:tabular-nums">表紙</span>
+  </div>
+
+  <div class="book" id="book" tabindex="0" role="region" aria-label="文庫本 水色の夏">
+    <div class="block" aria-hidden="true"></div>
+
+    <section class="sheet page" data-i="7">
+      <div class="tex"></div><div class="gutter"></div><div class="edge"></div>
+      <div class="running">水色の夏</div>
+      <div class="text">
+        <div class="pair newpara"><p class="jp para">彼女は笑って改札を抜けていった。</p><p class="note">그녀가 웃으며 개찰구를 지나갔다.</p></div>
+        <div class="pair"><p class="jp cont">僕はその後ろ姿が階段の下に消えるまで、立ち尽くしていた。</p><p class="note">나는 그 뒷모습이 계단 아래로 사라질 때까지 서 있었다.</p></div>
+        <div class="pair newpara"><p class="jp para"><span class="hl">柔らかい桃は嫌いだなんて、君は一度も、僕に言ったことがなかった。</span></p><p class="note"><span class="hl">물렁한 복숭아는 싫다는 말을, 너는 나에게 한 적이 없었다.</span></p></div>
+      </div>
+      <div class="folio">一六</div>
+    </section>
+
+    <section class="sheet page" data-i="6">
+      <div class="tex"></div><div class="gutter"></div><div class="edge"></div>
+      <div class="running">水色の夏</div>
+      <div class="text">
+        <div class="pair"><p class="jp cont">彼女は桃をひとつ取り出し、親指でそっと押して、目を丸くした。</p><p class="note">그녀가 복숭아 하나를 꺼내 엄지로 가만히 눌러 보더니 눈을 동그랗게 떴다.</p></div>
+        <div class="pair"><p class="jp cont">「<span class="hl">かたい桃だ</span>」</p><p class="note">"<span class="hl">딱딱한 복숭아네.</span>"</p></div>
+        <div class="pair newpara"><p class="jp para">彼女はその場でひと口かじった。</p><p class="note">그녀는 그 자리에서 한 입 베어 물었다.</p></div>
+        <div class="pair"><p class="jp cont">しゃくっ、と澄んだ音がした。</p><p class="note">아삭, 하고 맑은 소리가 났다.</p></div>
+        <div class="pair"><p class="jp cont">「わたしがこれ好きなの、どうして知ってたの？」</p><p class="note">"나 이거 좋아하는 거 어떻게 알았어?"</p></div>
+        <div class="pair"><p class="jp cont">「なんとなく。好きそうだと思って」</p><p class="note">"그냥. 좋아할 것 같았어."</p></div>
+      </div>
+      <div class="folio">一五</div>
+    </section>
+
+    <section class="sheet page" data-i="5">
+      <div class="tex"></div><div class="gutter"></div><div class="edge"></div>
+      <div class="running">水色の夏</div>
+      <div class="text">
+        <div class="pair"><p class="jp cont">蝉の声がアスファルトの上で煮え立っていた。</p><p class="note">매미 소리가 아스팔트 위로 끓어올랐다.</p></div>
+        <div class="pair"><p class="jp cont">彼女は<span class="hl">日陰ばかりを選んで歩き</span>、僕は半歩うしろで、その影を踏んだ。</p><p class="note">그녀는 <span class="hl">그늘만 골라 밟으며 걸었고</span>, 나는 반 걸음 뒤에서 그 그림자를 밟았다.</p></div>
+        <div class="pair newpara"><p class="jp para">改札の前で、僕は紙袋を差し出した。</p><p class="note">개찰구 앞에서 나는 종이봉투를 내밀었다.</p></div>
+        <div class="pair"><p class="jp cont">受け取るとき、彼女の指先が僕の手の甲をかすめた。</p><p class="note">봉투를 받아 드는 순간 그녀의 손끝이 내 손등을 스쳤다.</p></div>
+        <div class="pair"><p class="jp cont"><span class="hl">夏なのに、冷たい手だった</span>。</p><p class="note"><span class="hl">여름인데도 차가운 손이었다</span>.</p></div>
+      </div>
+      <div class="folio">一四</div>
+    </section>
+
+    <section class="sheet page" data-i="4">
+      <div class="tex"></div><div class="gutter"></div><div class="edge"></div>
+      <div class="running">水色の夏</div>
+      <div class="text">
+        <div class="pair"><p class="jp cont">見つめすぎると、気づかれてしまうものもあるから。</p><p class="note">어떤 것은 너무 오래 보면 들키니까.</p></div>
+        <div class="pair newpara"><p class="jp para">彼女はキンパを食べながら、ずっと会社の話をしていた。</p><p class="note">그녀는 김밥을 먹는 내내 회사 이야기를 했다.</p></div>
+        <div class="pair"><p class="jp cont">締め切りが一日早まったこと、隣の席の人がまた冷房を強くしたこと。</p><p class="note">마감이 하루 당겨졌다는 것, 옆자리 사람이 또 에어컨을 세게 틀었다는 것.</p></div>
+        <div class="pair"><p class="jp cont">僕は相槌のかわりに、その声をひとことずつ拾い集めた。</p><p class="note">나는 대답 대신 그 목소리를 한 마디씩 주워 담았다.</p></div>
+        <div class="pair newpara"><p class="jp para">店の戸を開けると、熱い空気がむっと押し寄せた。</p><p class="note">가게 문을 열자 뜨거운 공기가 훅 끼쳐 왔다.</p></div>
+      </div>
+      <div class="folio">一三</div>
+    </section>
+
+    <section class="sheet page" data-i="3">
+      <div class="tex"></div><div class="gutter"></div><div class="edge"></div>
+      <div class="running">水色の夏</div>
+      <div class="text">
+        <div class="pair"><p class="jp cont">彼女は頬杖をついてそれを眺め、やがて笑った。</p><p class="note">그녀가 턱을 괴고 그걸 지켜보다가 웃었다.</p></div>
+        <div class="pair"><p class="jp cont">「それ、わたしがやろうと思ってたのに」</p><p class="note">"그거 내가 하려던 건데."</p></div>
+        <div class="pair"><p class="jp cont">「知ってる」</p><p class="note">"알아."</p></div>
+        <div class="pair newpara"><p class="jp para">彼女がコップを手に取った。</p><p class="note">그녀가 물컵을 집었다.</p></div>
+        <div class="pair"><p class="jp cont">袖口から手の甲が一瞬のぞき、また隠れた。</p><p class="note">소매 끝에서 손등이 잠깐 드러났다가 사라졌다.</p></div>
+        <div class="pair"><p class="jp cont"><span class="hl">指の関節の下、半月のように弧を描いた小さな傷痕</span>。</p><p class="note"><span class="hl">손가락 마디 아래, 반달처럼 휜 작은 흉터</span>.</p></div>
+        <div class="pair"><p class="jp cont">僕は初めて見る人のように目をそらした。</p><p class="note">나는 그것을 처음 보는 사람처럼 눈을 돌렸다.</p></div>
+      </div>
+      <div class="folio">一二</div>
+    </section>
+
+    <section class="sheet page" data-i="2">
+      <div class="tex"></div><div class="gutter"></div><div class="edge"></div>
+      <div class="running">水色の夏</div>
+      <div class="text">
+        <div class="pair newpara"><p class="jp para">七月の食堂は、冷房の効きが弱かった。</p><p class="note">칠월의 식당은 에어컨이 약했다.</p></div>
+        <div class="pair"><p class="jp cont">古い扇風機が首を振るたび、彼女の前髪がかすかに揺れた。</p><p class="note">낡은 선풍기가 고개를 돌릴 때마다 그녀의 앞머리가 조금씩 흔들렸다.</p></div>
+        <div class="pair"><p class="jp cont">彼女は先に来ていた。</p><p class="note">그녀는 먼저 와 있었다.</p></div>
+        <div class="pair"><p class="jp cont">「ごめん、待った？」</p><p class="note">"미안, 오래 기다렸어?"</p></div>
+        <div class="pair newpara"><p class="jp para">返事のかわりに、彼女はキンパの皿をこちらへ押しやった。</p><p class="note">대답 대신 그녀는 김밥 접시를 내 쪽으로 밀었다.</p></div>
+        <div class="pair"><p class="jp cont">僕は箸を取り、<span class="hl">人参をひとつずつ抜き出した</span>。</p><p class="note">나는 젓가락을 들어 <span class="hl">당근을 하나씩 빼냈다</span>.</p></div>
+      </div>
+      <div class="folio">一一</div>
+    </section>
+
+    <section class="sheet page title-page" data-i="1">
+      <div class="tex"></div><div class="gutter"></div><div class="edge"></div>
+      <div class="text">
+        <p class="d tp-chapter">第一章</p>
+        <p class="d tp-name">七月</p>
+      </div>
+    </section>
+
+    <section class="sheet cover" data-i="0">
+      <canvas id="coverArt" aria-hidden="true"></canvas>
+      <div class="spine" aria-hidden="true"></div><div class="hinge" aria-hidden="true"></div>
+      <div class="c-titleblock"><div class="c-title">水色の夏</div><div class="c-en">MIZUIRO NO NATSU</div></div>
+      <div class="c-label">長編小説</div>
+      <div class="c-author">得能　勇志</div>
+      <div class="c-author-kr">토쿠노 유우시</div>
+      <div class="obi">
+        <canvas id="obiArt" aria-hidden="true"></canvas>
+        <div class="obi-catch">君のことなら、なんでも知っている。<br>あの夏から、ずっと。</div>
+        <div class="obi-kr" id="obiKr" hidden>너에 대해서라면, 뭐든 알고 있어.<br>그 여름부터, 계속.</div>
+        <div class="obi-sub">得能勇志　書き下ろし長編</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="hint" id="hint">表紙をタップして開く</div>
+</div>
+
+<script>
+(function(){
+  const book=document.getElementById('book');
+  const FS=4.1;
+  const kanjiNum=n=>String(n).split('').map(c=>'〇一二三四五六七八九'[c]).join('');
+  const bodyPages=[...document.querySelectorAll('.page:not(.title-page)')].sort((a,b)=>a.dataset.i-b.dataset.i);
+  const pairs=bodyPages.flatMap(pg=>[...pg.querySelectorAll('.pair')]).map(el=>el.cloneNode(true));
+  const tpl=bodyPages[0].cloneNode(true); tpl.querySelector('.text').innerHTML='';
+  const titlePage=document.querySelector('.title-page');
+  let built=[], sheets=[], N=0, cur=0, labels=[];
+  const pos=document.getElementById('pos'), hint=document.getElementById('hint');
+  /* flow every sentence pair into pages at one fixed type size, starting a new page whenever a page fills up */
+  function paginate(){
+    const keep=cur;
+    document.querySelectorAll('.page:not(.title-page)').forEach(el=>el.remove());
+    built=[]; let before=titlePage, page=null, text=null;
+    function newPage(){
+      page=tpl.cloneNode(true); text=page.querySelector('.text'); text.style.fontSize=FS+'cqw';
+      page.classList.remove('before'); page.classList.add('after');
+      book.insertBefore(page,before); before=page; built.push(page);
+    }
+    newPage();
+    pairs.forEach(pr=>{
+      const node=pr.cloneNode(true); text.appendChild(node);
+      if(text.scrollWidth>text.clientWidth+1 && text.children.length>1){node.remove(); newPage(); text.appendChild(node)}
+    });
+    built.forEach((pg,k)=>{pg.dataset.i=2+k; pg.querySelector('.folio').textContent=kanjiNum(11+k)});
+    sheets=[...document.querySelectorAll('.sheet')].sort((a,b)=>a.dataset.i-b.dataset.i);
+    N=sheets.length;
+    labels=['表紙','扉',...built.map((_,k)=>kanjiNum(11+k))];
+    show(Math.min(keep,N-1));
+  }
+  function show(n){
+    n=Math.max(0,Math.min(N-1,n));
+    sheets.forEach((s,i)=>{s.classList.toggle('before',i<n);s.classList.toggle('after',i>n)});
+    cur=n; pos.textContent=labels[n];
+    hint.textContent=n===0?'表紙をタップして開く':(n===N-1?'右側をタップで前のページ':'左側をタップで次へ　右側で前へ');
+  }
+  book.addEventListener('click',e=>{
+    if(cur===0){show(1);return}
+    const r=book.getBoundingClientRect();
+    show(e.clientX<r.left+r.width/2?cur+1:cur-1);
+  });
+  let sx=null;
+  book.addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true});
+  book.addEventListener('touchend',e=>{
+    if(sx===null)return; const dx=e.changedTouches[0].clientX-sx; sx=null;
+    if(Math.abs(dx)>40){e.preventDefault();show(dx>0?cur+1:cur-1)}
+  });
+  book.addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'||e.key===' '){e.preventDefault();show(cur+1)}
+    if(e.key==='ArrowRight'){e.preventDefault();show(cur-1)}
+  });
+  document.getElementById('toCover').addEventListener('click',()=>show(0));
+  const obi=document.querySelector('.obi'),obiKr=document.getElementById('obiKr');
+  obi.addEventListener('click',e=>{e.stopPropagation();obiKr.hidden=!obiKr.hidden;requestAnimationFrame(drawObiSafe)});
+  obi.addEventListener('touchend',e=>e.stopPropagation());
+  function drawObiSafe(){try{drawObi()}catch(err){}}
+  paginate(); show(0);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(paginate);
+  let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(paginate,150)});
+
+  /* paper texture: fibres and grain, generated once and shared by every page */
+  function paperTexture(){
+    const s=280,c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d');
+    const img=x.createImageData(s,s),d=img.data;
+    for(let i=0;i<d.length;i+=4){const v=Math.random()*26;d[i]=120;d[i+1]=95;d[i+2]=60;d[i+3]=v}
+    x.putImageData(img,0,0);
+    for(let k=0;k<70;k++){
+      x.strokeStyle=`rgba(${110+Math.random()*40},${85+Math.random()*30},60,${0.06+Math.random()*0.08})`;
+      x.lineWidth=0.5+Math.random()*0.6;
+      const px=Math.random()*s,py=Math.random()*s,a=Math.random()*Math.PI,l=4+Math.random()*14;
+      x.beginPath();x.moveTo(px,py);x.quadraticCurveTo(px+Math.cos(a)*l*0.5+Math.random()*3,py+Math.sin(a)*l*0.5,px+Math.cos(a)*l,py+Math.sin(a)*l);x.stroke();
+    }
+    return c.toDataURL();
+  }
+  try{const t=paperTexture();book.style.setProperty('--paper-tex',`url(${t})`)}catch(e){}
+
+  function grain(ctx,w,h,amt,dark,light){
+    for(let k=0;k<w*h*amt;k++){ctx.fillStyle=Math.random()<0.5?light:dark;ctx.fillRect(Math.random()*w,Math.random()*h,1,1)}
+  }
+  /* dappled light through summer leaves: soft blurred leaf shadows and sun flecks, drawn as offset shadows so they stay organic */
+  function komorebi(x,w,h){
+    let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};
+    const off=w*4;
+    function blob(cx,cy,rx,ry,rot,color,blur){
+      x.save();x.shadowColor=color;x.shadowBlur=blur;x.shadowOffsetX=off;x.fillStyle='#000';
+      x.translate(cx-off,cy);x.rotate(rot);x.beginPath();
+      const n=7;for(let i=0;i<=n;i++){const a=i/n*Math.PI*2,r=1+(rnd()-0.5)*0.35;const px=Math.cos(a)*rx*r,py=Math.sin(a)*ry*r;i?x.quadraticCurveTo(Math.cos(a-0.45)*rx*1.1,Math.sin(a-0.45)*ry*1.1,px,py):x.moveTo(px,py)}
+      x.fill();x.restore();
+    }
+    for(let c=0;c<5;c++){
+      const ccx=w*(0.15+rnd()*0.8),ccy=h*(0.04+rnd()*0.62);
+      for(let i=0;i<16;i++){
+        const s=w*(0.025+rnd()*0.05);
+        blob(ccx+(rnd()-0.5)*w*0.34,ccy+(rnd()-0.5)*h*0.16,s,s*(0.35+rnd()*0.3),rnd()*Math.PI,'rgba(46,92,112,'+(0.05+rnd()*0.07).toFixed(3)+')',w*(0.012+rnd()*0.02));
+      }
+    }
+    for(let i=0;i<26;i++){
+      const s=w*(0.006+rnd()*0.02);
+      blob(w*(0.1+rnd()*0.85),h*(0.05+rnd()*0.7),s,s*(0.7+rnd()*0.3),rnd()*Math.PI,'rgba(255,253,240,'+(0.35+rnd()*0.35).toFixed(3)+')',w*(0.01+rnd()*0.015));
+    }
+  }
+  function drawCover(){
+    const cv=document.getElementById('coverArt'),r=cv.getBoundingClientRect();if(!r.width)return;
+    const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=r.width*dpr;cv.height=r.height*dpr;
+    const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);const W=r.width,H=r.height;
+    function bloom(px,py,rad,stops){const g=x.createRadialGradient(px,py,0,px,py,rad);stops.forEach(s=>g.addColorStop(s[0],s[1]));x.fillStyle=g;x.fillRect(0,0,W,H)}
+    bloom(W*0.70,H*0.08,W*0.95,[[0,'rgba(150,205,222,0.55)'],[0.4,'rgba(170,215,226,0.30)'],[1,'rgba(200,228,232,0)']]);
+    bloom(W*0.18,H*0.62,W*0.75,[[0,'rgba(110,182,204,0.42)'],[0.45,'rgba(150,204,218,0.20)'],[1,'rgba(180,220,228,0)']]);
+    bloom(W*0.48,H*0.40,W*0.42,[[0,'rgba(255,255,255,0.65)'],[1,'rgba(255,255,255,0)']]);
+    bloom(W*0.86,H*0.58,W*0.40,[[0,'rgba(198,226,214,0.35)'],[1,'rgba(198,226,214,0)']]);
+    bloom(W*0.30,H*0.20,W*0.30,[[0,'rgba(232,244,246,0.5)'],[1,'rgba(232,244,246,0)']]);
+    x.setTransform(1,0,0,1,0,0);
+    komorebi(x,cv.width,cv.height);
+    grain(x,cv.width,cv.height,0.09,'rgba(30,60,80,0.05)','rgba(255,255,255,0.08)');
+    /* faint laid-paper lines for a matte card stock feel */
+    x.globalAlpha=0.03;x.fillStyle='#2c4a58';
+    for(let y=0;y<cv.height;y+=3*dpr){x.fillRect(0,y,cv.width,1)}
+    x.globalAlpha=1;
+  }
+  function drawObi(){
+    const cv=document.getElementById('obiArt'),r=cv.getBoundingClientRect();if(!r.width)return;
+    const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=r.width*dpr;cv.height=r.height*dpr;
+    const x=cv.getContext('2d');grain(x,cv.width,cv.height,0.05,'rgba(30,60,80,0.04)','rgba(255,255,255,0.10)');
+  }
+  function drawAll(){drawCover();drawObi()}
+  drawAll(); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(drawAll);
+  window.addEventListener('resize',drawAll);
+})();
+</script>
+
+</body>
+</html>
